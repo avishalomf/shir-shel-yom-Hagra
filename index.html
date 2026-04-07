@@ -128,16 +128,19 @@
         }
 
         // 8. סוכות
-        if (month === 7) {
-            if (day === 15) return { key: "76", label: "יום א' דסוכות" };
-            if (day === 22) return { key: "12", label: "שמיני עצרת" };
-            if (day > 15 && day < 22 && dayOfWeek !== 6) {
-                let count = 0;
-                for (let d = 16; d <= day; d++) if (new hebcal.HDate(d, 7, hDate.getFullYear()).greg().getDay() !== 6) count++;
-                const s = ["29", "50", "94_A", "94_B", "81", "82"];
-                return { key: s[count-1], label: (day===21)?"הושענא רבא":numToHeb(count)+" דחוה\"מ סוכות" };
-            }
-        }
+if (month === 7) {
+    if (day === 15) return { key: "76", label: "יום א' דסוכות" };
+    if (day === 22) return { key: "12", label: "שמיני עצרת" };
+    if (day > 15 && day < 22 && dayOfWeek !== 6) {
+        let count = 0;
+        for (let d = 16; d <= day; d++) if (new hebcal.HDate(d, 7, hDate.getFullYear()).greg().getDay() !== 6) count++;
+        
+        // כאן התיקון: 94_B ביום השלישי, 94_A ביום הרביעי
+        const s = ["29", "50", "94_B", "94_A", "81", "82"]; 
+        
+        return { key: s[count-1], label: (day===21)?"הושענא רבא":numToHeb(count)+" דחוה\"מ סוכות" };
+    }
+}
 
         // 9. ראש חודש
         if ((day === 1 || day === 30) && dayOfWeek !== 6) return { key: "104", label: "ראש חודש" };
