@@ -2,60 +2,59 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>v1.5.5 - שיר של יום</title>
-    <script src="https://unpkg.com/hebcal@1.6.0/dist/hebcal.min.js"></script>
+    <title>v1.5.6 - שיר של יום</title>
     <style>
         body { font-family: system-ui, sans-serif; text-align: center; padding: 20px; background: #f8f9fa; }
         .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 650px; margin: auto; }
-        #status { color: #d9534f; font-size: 0.9em; margin-bottom: 10px; font-weight: bold; }
         #psalm-content { white-space: pre-wrap; font-size: 1.5em; text-align: justify; line-height: 1.8; margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px; }
     </style>
 </head>
 <body>
     <div class="card">
-        <div id="status">מנסה להתחבר לספריית התאריכים...</div>
         <div id="psalm-label" style="color: #777;"></div>
         <h1 id="psalm-title">טוען...</h1>
         <div id="psalm-content"></div>
-        <div style="margin-top:20px; color:#ddd; font-size:0.7em;">v1.5.5 | אבישלום</div>
+        <div style="margin-top:20px; color:#ddd; font-size:0.7em;">v1.5.6 | אבישלום</div>
     </div>
 
     <script>
-        // VERSION: 1.5.5
+        // VERSION: 1.5.6 - עצמאי לגמרי (ללא ספריות חיצוניות)
+        
         function numToHeb(n) {
             const l = {1:'א',2:'ב',3:'ג',4:'ד',5:'ה',6:'ו',7:'ז',8:'ח',9:'ט',10:'י',12:'י"ב',18:'י"ח',22:'כ"ב',24:'כ"ד',29:'כ"ט',48:'מ"ח',50:'נ',66:'ס"ו',76:'ע"ו',78:'ע"ח',80:'פ',81:'פ"א',82:'פ"ב',92:'צ"ב',93:'צ"ג',94:'צ"ד',104:'ק"ד',105:'ק"ה',114:'קי"ד',135:'קל"ה'};
             return l[n] || n;
         }
 
-        async function init() {
-            const statusDiv = document.getElementById('status');
-            const lib = window.hebcal || window.Hebcal;
+        // פונקציה חלופית לחישוב תאריך עברי בסיסי (רק מה שצריך למזמורים)
+        function getHebrewDateInfo(date) {
+            // שימוש במנוע הפנימי של הדפדפן לחישוב תאריך עברי
+            const options = { day: 'numeric', month: 'long', calendar: 'hebrew' };
+            const parts = new Intl.DateTimeFormat('en-u-ca-hebrew', options).formatToParts(date);
+            const d = parseInt(parts.find(p => p.type === 'day').value);
+            const mStr = parts.find(p => p.type === 'month').value;
             
-            if (!lib) {
-                statusDiv.innerText = "ממתין לספריית Hebcal (בדוק חיבור אינטרנט)...";
-                setTimeout(init, 500);
-                return;
-            }
+            // מיפוי חודשים (Intl מחזיר שמות באנגלית)
+            const monthMap = { 'Tishri': 7, 'Nisan': 1, 'Heshvan': 8, 'Kislev': 9, 'Tevet': 10, 'Shevat': 11, 'Adar': 12, 'Adar I': 12, 'Adar II': 13, 'Iyar': 2, 'Sivan': 3, 'Tamuz': 4, 'Av': 5, 'Elul': 6 };
+            return { day: d, month: monthMap[mStr] || 0 };
+        }
 
-            statusDiv.innerText = "הספרייה נטענה. מחשב תאריך ומחפש קובץ מזמורים...";
-
+        async function init() {
             try {
                 const now = new Date();
-                const hd = new lib.HDate(now);
-                const d = hd.getDate(), m = hd.getMonth(), dw = now.getDay();
+                const hd = getHebrewDateInfo(now);
+                const d = hd.day, m = hd.month, dw = now.getDay();
                 
                 let key = "", lbl = "";
 
-                // לוגיקה (סוכות/פסח/חול)
                 if (dw === 6) { key = "92"; lbl = "שבת קודש"; }
-                else if (m === 7 && d >= 15 && d <= 21) {
+                else if (m === 7 && d >= 15 && d <= 21) { // סוכות
                     const i = d - 15; lbl = (d === 21) ? "הושענא רבא" : numToHeb(i) + " דחוה\"מ סוכות";
                     if (d === 15) key = "76"; else if (i === 1) key = "29"; else if (i === 2) key = "50";
                     else if (i === 3) key = (dw === 0) ? "50" : "94_B";
                     else if (i === 4) key = (dw === 1) ? "94_B" : "94_A";
                     else if (i === 5) key = (dw === 0 || dw === 2) ? "94_A" : "81";
                     else key = "82";
-                } else if (m === 1 && d >= 15 && d <= 21) {
+                } else if (m === 1 && d >= 15 && d <= 21) { // פסח
                     const i = d - 15; lbl = numToHeb(i) + " דחוה\"מ פסח";
                     if (d === 15) key = "114"; else if (d === 21) key = "18";
                     else if (i === 1) key = (dw === 0) ? "114" : "78";
@@ -67,17 +66,13 @@
                 else if (dw === 3) { key = "94"; }
                 else { key = {0:'24', 1:'48', 2:'82', 4:'81', 5:'93'}[dw]; }
 
-                // ניסיון טעינת הקובץ
-                const res = await fetch('psalms.json?nocache=' + Date.now());
-                if (!res.ok) throw new Error("קובץ psalms.json לא נמצא בשרת");
-                
+                // טעינת המזמורים מהקובץ המקומי
+                const res = await fetch('psalms.json?v=' + Date.now());
                 const data = await res.json();
-                statusDiv.style.display = "none"; // הכל תקין - הסתר סטטוס
-
+                
                 let body = "", title = "מזמור " + numToHeb(key.split('_')[0]);
-
                 if (key === "94") {
-                    body = Object.values(data["94_A"] || {}).join(' ') + "\n\n" + Object.values(data["94_B"] || {}).join(' ');
+                    body = Object.values(data["94_A"]).join(' ') + "\n\n" + Object.values(data["94_B"]).join(' ');
                 } else {
                     const p = data[key];
                     body = (typeof p === 'object' ? Object.values(p).join(' ') : p) || "מזמור חסר";
@@ -89,8 +84,8 @@
                 document.getElementById('psalm-label').innerText = lbl;
                 document.getElementById('psalm-content').innerText = body.trim();
             } catch (err) {
-                statusDiv.innerText = "שגיאה: " + err.message;
-                document.getElementById('psalm-title').innerText = "שגיאה";
+                document.getElementById('psalm-title').innerText = "שגיאת טעינה";
+                console.error(err);
             }
         }
         window.onload = init;
