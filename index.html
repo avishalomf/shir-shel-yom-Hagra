@@ -1,3 +1,4 @@
+// VERSION: 1.3.9
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -58,60 +59,73 @@
 </head>
 <body>
 
-    <div class="container">
-        <h1>שיר של יום - נוסח הגר"א</h1>
-        <div id="psalm-content" class="loading">טוען נתונים מהמערכת...</div>
+<div class="container">
+    <h1>שיר של יום - נוסח הגר"א</h1>
+    <div id="psalm-content" class="loading">טוען נתונים מהקובץ...</div>
+</div>
+
+<div id="footer-version" class="version-footer">
     </div>
 
-    <div class="version-footer">
-        גרסת מערכת: 1.3.9 | &copy; 2026
-    </div>
+<script>
+    // הגדרת הגרסה במקום אחד מרכזי
+    const APP_VERSION = "1.3.9";
 
-    <script>
-        // Internal Version: 1.3.9
-        async function fetchDailyPsalm() {
-            const displayElement = document.getElementById('psalm-content');
+    async function fetchDailyPsalm() {
+        const displayElement = document.getElementById('psalm-content');
+        const footerElement = document.getElementById('footer-version');
+        
+        // עדכון גרסה בפוטר באופן אוטומטי
+        footerElement.innerHTML = `גרסת מערכת: ${APP_VERSION} | &copy; 2026`;
+        
+        try {
+            // שימוש בגרסה למניעת Cache
+            const response = await fetch(`psalms.json?v=${APP_VERSION}-${new Date().getTime()}`);
+            if (!response.ok) throw new Error("קובץ psalms.json לא נמצא");
             
-            try {
-                // מניעת Cache על ידי הוספת גרסה וזמן ל-URL
-                const response = await fetch('psalms.json?v=1.3.9-' + new Date().getTime());
-                if (!response.ok) throw new Error("קובץ הנתונים (psalms.json) לא נמצא");
-                
-                const data = await response.json();
-                const dayOfWeek = new Date().getDay();
-                
-                let finalContent = "";
+            const data = await response.json();
+            const dayOfWeek = new Date().getDay();
+            
+            let finalContent = "";
 
-                switch(dayOfWeek) {
-                    case 0: finalContent = data["24"]; break;
-                    case 1: finalContent = data["48"]; break;
-                    case 2: finalContent = data["82"]; break;
-                    case 3: 
-                        finalContent = (data["94_part1"] || "") + "\n\n" + (data["94_part2"] || "");
-                        break;
-                    case 4: finalContent = data["81"]; break;
-                    case 5: finalContent = data["93"]; break;
-                    case 6: finalContent = data["92"]; break;
-                }
+            const psalmMapping = {
+                0: "24",
+                1: "48",
+                2: "82",
+                3: "94", // מטופל בנפרד למטה
+                4: "81",
+                5: "93",
+                6: "92"
+            };
 
-                if (!finalContent || finalContent.trim() === "") {
-                    throw new Error("המזמור ליום זה חסר בקובץ המקור");
-                }
-
-                displayElement.innerText = finalContent;
-                displayElement.classList.remove('loading');
-
-            } catch (error) {
-                console.error("Debug Details [v1.3.9]:", error);
-                displayElement.innerHTML = `<div class="error">שגיאה: ${error.message}<br><small>גרסה: 1.3.9</small></div>`;
+            if (dayOfWeek === 3) {
+                finalContent = (data["94_part1"] || "") + "\n\n" + (data["94_part2"] || "");
+            } else {
+                finalContent = data[psalmMapping[dayOfWeek]];
             }
-        }
 
-        window.addEventListener('DOMContentLoaded', fetchDailyPsalm);
+            if (!finalContent || finalContent.trim() === "") {
+                throw new Error("המזמור חסר בקובץ המקור");
+            }
 
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(err => console.log('SW failed:', err));
+            displayElement.innerText = finalContent;
+            displayElement.classList.remove('loading');
+
+        } catch (error) {
+            console.error(`Debug v${APP_VERSION}:`, error);
+            displayElement.innerHTML = `
+                <div class="error">
+                    שגיאה: ${error.message}<br>
+                    <small>גרסה: ${APP_VERSION}</small>
+                </div>`;
         }
-    </script>
+    }
+
+    window.addEventListener('DOMContentLoaded', fetchDailyPsalm);
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(err => console.log('SW failed:', err));
+    }
+</script>
 </body>
 </html>
