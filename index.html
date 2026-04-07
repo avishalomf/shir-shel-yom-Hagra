@@ -11,7 +11,7 @@
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="manifest" href="manifest.json">
     
-    <title>v1.4.0 - שיר של יום</title>
+    <title>v1.4.2 - שיר של יום</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@hebcal/core@latest/dist/bundle.min.js"></script>
     
@@ -33,7 +33,7 @@
 </head>
 <body>
     <div id="app-root">
-        <div class="version-header">v1.4.0</div>
+        <div class="version-header">v1.4.2</div>
         <div class="container">
             <div class="date-picker-section">
                 <input type="date" id="date-input" onchange="pickDate(this.value)">
@@ -76,64 +76,95 @@
     }
 
     function determinePsalmKey(date) {
-    const hDate = new hebcal.HDate(date);
-    const day = hDate.getDate();
-    const month = hDate.getMonth();
-    const dayOfWeek = date.getDay();
+        const hDate = new hebcal.HDate(date);
+        const day = hDate.getDate();
+        const month = hDate.getMonth();
+        const dayOfWeek = date.getDay();
 
-    // ראש חודש
-    if (day === 1 || day === 30) return { key: "104", label: "ראש חודש" };
-    
-    // חנוכה (כ"ה כסלו עד ב' או ג' בטבת)
-    if ((month === 9 && day >= 25) || (month === 10 && day <= 3)) {
-        // בדיקה מדויקת שזה אכן בתוך 8 ימי חנוכה
-        const festival = hebcal.getHolidaysOnDate(hDate);
-        if (festival.some(h => h.getDesc().includes("Chanukah"))) {
-            return { key: "30", label: "חנוכה" };
+        // ראש חודש
+        if (day === 1 || day === 30) return { key: "104", label: "ראש חודש" };
+        
+        // חנוכה
+        if ((month === 9 && day >= 25) || (month === 10 && day <= 3)) {
+            const festival = hebcal.getHolidaysOnDate(hDate);
+            if (festival.some(h => h.getDesc().includes("Chanukah"))) return { key: "30", label: "חנוכה" };
         }
-    }
 
-    // פורים (י"ד באדר, ובאדר ב' בשנה מעוברת)
-    if (day === 14 && (month === 12 || month === 13)) return { key: "22", label: "פורים" };
-    
-    // שבועות (ו' בסיון)
-    if (month === 3 && day === 6) return { key: "19", label: "חג השבועות" };
-    if (month === 3 && day === 7) return { key: "68", label: "שבועות יום ב'" };
+        // פורים
+        if (day === 14 && (month === 12 || month === 13)) return { key: "22", label: "פורים" };
+        
+        // תשעה באב
+        if (month === 5 && day === 9) return { key: "79", label: "תשעה באב" };
 
-    // שבת קודש
-    if (dayOfWeek === 6) return { key: "92", label: "שבת קודש" };
+        // יום כיפור
+        if (month === 7 && day === 10) return { key: "103", label: "יום הכיפורים" };
 
-    // פסח
-    if (month === 1) {
-        if (day === 15) return { key: "114", label: "יום א' דפסח" };
-        if (day === 21) return { key: "18", label: "שביעי של פסח" };
-        if (day > 15 && day < 21) {
-            let count = 0;
-            for (let d = 16; d <= day; d++) {
-                if (new hebcal.HDate(d, 1, hDate.getFullYear()).greg().getDay() !== 6) count++;
+        // שבועות
+        if (month === 3 && day === 6) return { key: "19", label: "חג השבועות" };
+        if (month === 3 && day === 7) return { key: "68", label: "שבועות יום ב'" };
+
+        // שבת קודש
+        if (dayOfWeek === 6) return { key: "92", label: "שבת קודש" };
+
+        // פסח
+        if (month === 1) {
+            if (day === 15) return { key: "114", label: "יום א' דפסח" };
+            if (day === 21) return { key: "18", label: "שביעי של פסח" };
+            if (day > 15 && day < 21) {
+                let count = 0;
+                for (let d = 16; d <= day; d++) {
+                    if (new hebcal.HDate(d, 1, hDate.getFullYear()).greg().getDay() !== 6) count++;
+                }
+                const p = ["78", "80", "105", "135", "66"];
+                return { key: p[count-1], label: numToHeb(count) + " דחוה\"מ פסח" };
             }
-            const p = ["78", "80", "105", "135", "66"];
-            return { key: p[count-1], label: numToHeb(count) + " דחוה\"מ פסח" };
         }
-    }
 
-    // סוכות
-    if (month === 7) {
-        if (day === 15) return { key: "76", label: "יום א' דסוכות" };
-        if (day === 22) return { key: "12", label: "שמיני עצרת" };
-        if (day > 15 && day < 22) {
-            let count = 0;
-            for (let d = 16; d <= day; d++) {
-                if (new hebcal.HDate(d, 7, hDate.getFullYear()).greg().getDay() !== 6) count++;
+        // סוכות
+        if (month === 7) {
+            if (day === 15) return { key: "76", label: "יום א' דסוכות" };
+            if (day === 22) return { key: "12", label: "שמיני עצרת" };
+            if (day > 15 && day < 22) {
+                let count = 0;
+                for (let d = 16; d <= day; d++) {
+                    if (new hebcal.HDate(d, 7, hDate.getFullYear()).greg().getDay() !== 6) count++;
+                }
+                const s = ["29", "50", "94_A", "94_B", "81", "82"];
+                return { key: s[count-1], label: (day===21)?"הושענא רבא":numToHeb(count)+" דחוה\"מ סוכות" };
             }
-            const s = ["29", "50", "94_A", "94_B", "81", "82"];
-            return { key: s[count-1], label: (day===21)?"הושענא רבא":numToHeb(count)+" דחוה\"מ סוכות" };
         }
+
+        // ימי חול רגילים
+        return { key: {0:'24', 1:'48', 2:'82', 3:'94_B', 4:'81', 5:'93'}[dayOfWeek], label: "" };
     }
 
-    // ימי חול רגילים
-    return { key: {0:'24', 1:'48', 2:'82', 3:'94_B', 4:'81', 5:'93'}[dayOfWeek], label: "" };
-}
+    async function loadPsalm() {
+        try {
+            const hDate = new hebcal.HDate(currentDate);
+            const daysArr = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
+            const monthsHe = ["","ניסן","אייר","סיון","תמוז","אב","אלול","תשרי","חשון","כסלו","טבת","שבט","אדר","אדר ב'"];
+            
+            document.getElementById('hebrew-date').innerHTML = "יום " + daysArr[currentDate.getDay()] + ", " + numToHeb(hDate.getDate()) + " ב" + monthsHe[hDate.getMonth()] + " " + numToHeb(hDate.getFullYear());
+            document.getElementById('date-input').value = currentDate.toISOString().split('T')[0];
+            
+            const info = determinePsalmKey(currentDate);
+            document.getElementById('moed-container').innerHTML = info.label ? `<div class="moed-label">${info.label}</div>` : "";
+            
+            if (!psalmsCache) psalmsCache = await (await fetch('psalms.json')).json();
+            
+            let data = psalmsCache[info.key];
+            if (data) {
+                let baseNum = info.key.split('_')[0];
+                let titleText = "מזמור " + numToHeb(baseNum);
+                
+                if (info.key === "94_A") titleText += ", א'-ט\"ו";
+                else if (info.key === "94_B") titleText += ", ט\"ז-כ\"ג";
+
+                document.getElementById('psalm-title').innerText = titleText;
+                document.getElementById('psalm-content').innerText = (typeof data === 'object' ? Object.values(data).join(' ') : data).trim();
+            }
+        } catch (e) { console.error(e); }
+    }
 
     function changeDate(d) { currentDate.setDate(currentDate.getDate() - d); loadPsalm(); }
     function pickDate(val) { if (val) { currentDate = new Date(val); loadPsalm(); } }
