@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shir-shel-yom-v1.4.6';
+const CACHE_NAME = 'shir-shel-yom-v1.4.7';
 const ASSETS = [
   './',
   './index.html',
