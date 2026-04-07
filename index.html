@@ -3,118 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>v1.6.2 - שיר של יום (הטבלה הרשמית)</title>
+    <title>v1.7.0 - שיר של יום המלא</title>
     <style>
-        body { font-family: 'Segoe UI', system-ui, sans-serif; text-align: center; background-color: #f8f9fa; margin: 0; padding: 20px; color: #333; }
-        .container { background: white; max-width: 700px; margin: 20px auto; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border-top: 5px solid #2c3e50; }
-        #psalm-label { color: #d35400; font-size: 1.2em; margin-bottom: 5px; min-height: 1.5em; font-weight: bold; }
-        #psalm-title { color: #2c3e50; font-size: 2.5em; margin: 0 0 25px 0; font-weight: 800; border-bottom: 1px solid #eee; padding-bottom: 15px; }
-        #psalm-content { white-space: pre-wrap; font-size: 1.5em; text-align: justify; line-height: 1.9; color: #444; font-family: 'David', 'Times New Roman', serif; }
-        .v-footer { margin-top: 40px; color: #ccc; font-size: 0.8em; border-top: 1px solid #f1f1f1; padding-top: 10px; }
-        .date-info { color: #999; font-size: 0.9em; margin-bottom: 10px; }
+        :root { --primary: #2c3e50; --accent: #c0392b; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        .container { background: white; width: 100%; max-width: 800px; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 8px solid var(--primary); text-align: center; }
+        
+        /* כותרות ותאריכים */
+        .date-header { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .date-heb { font-size: 1.4em; font-weight: bold; color: var(--primary); margin: 5px 0; }
+        .date-eng { font-size: 0.9em; color: #7f8c8d; }
+        
+        #psalm-label { color: var(--accent); font-size: 1.3em; font-weight: bold; margin-bottom: 10px; min-height: 1.5em; }
+        #psalm-title { font-size: 2.8em; margin: 10px 0; color: var(--primary); }
+        #psalm-content { white-space: pre-wrap; font-size: 1.6em; text-align: justify; line-height: 1.8; color: #333; font-family: 'David', serif; border-top: 1px solid #eee; padding-top: 20px; }
+
+        /* ניווט ובחירה */
+        .nav-controls { display: flex; justify-content: center; gap: 15px; margin: 25px 0; flex-wrap: wrap; }
+        button { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 1em; transition: opacity 0.2s; }
+        button:hover { opacity: 0.9; }
+        button.secondary { background: #7f8c8d; }
+        input[type="date"] { padding: 8px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; }
+
+        .footer { margin-top: 30px; color: #bdc3c7; font-size: 0.8em; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="date-info" id="date-str"></div>
+    <div class="date-header">
+        <div class="date-heb" id="display-heb"></div>
+        <div class="date-eng" id="display-eng"></div>
+    </div>
+
+    <div class="nav-controls">
+        <button onclick="changeDate(-1)">→ יום קודם</button>
+        <button class="secondary" onclick="resetToToday()">היום</button>
+        <button onclick="changeDate(1)">יום הבא ←</button>
+        <input type="date" id="date-picker" onchange="pickDate(this.value)">
+    </div>
+
     <div id="psalm-label"></div>
     <h1 id="psalm-title">טוען...</h1>
-    <div id="psalm-content">טוען את המזמור לפי הטבלה...</div>
-    <div class="v-footer">VERSION 1.6.2 | אבישלום</div>
+    
+    <div id="psalm-content">מתחבר לנתונים...</div>
+
+    <div class="footer">VERSION 1.7.0 | אבישלום</div>
 </div>
 
 <script>
-    // VERSION: 1.6.2
+    // VERSION: 1.7.0
+    let currentDate = new Date();
     const HEB_CHARS = {1:'א',2:'ב',3:'ג',4:'ד',5:'ה',6:'ו',7:'ז',8:'ח',9:'ט',10:'י',11:'י"א',12:'י"ב',13:'י"ג',14:'י"ד',15:'ט"ו',16:'ט"ז',17:'י"ז',18:'י"ח',19:'י"ט',20:'כ',21:'כ"א',22:'כ"ב',24:'כ"ד',25:'כ"ה',29:'כ"ט',30:'ל',48:'מ"ח',50:'נ',66:'ס"ו',76:'ע"ו',78:'ע"ח',80:'פ',81:'פ"א',82:'פ"ב',92:'צ"ב',93:'צ"ג',94:'צ"ד',104:'ק"ד',105:'ק"ה',114:'קי"ד',135:'קל"ה'};
 
     function toHeb(n) { return HEB_CHARS[n] || n; }
 
-    function getTodayHebrew() {
-        const date = new Date();
+    function getHebrewInfo(date) {
         const partsEn = new Intl.DateTimeFormat('en-u-ca-hebrew', {day:'numeric', month:'long'}).formatToParts(date);
         const d = parseInt(partsEn.find(p => p.type === 'day').value);
         const mStr = partsEn.find(p => p.type === 'month').value;
-        const hebFormat = new Intl.DateTimeFormat('he-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(date);
+        const hebStr = new Intl.DateTimeFormat('he-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(date);
+        const engStr = new Intl.DateTimeFormat('he-IL', {day:'numeric', month:'long', year:'numeric'}).format(date);
+        
         const mMap = {"Tishri":7, "Heshvan":8, "Kislev":9, "Tevet":10, "Shevat":11, "Adar":12, "Adar I":12, "Adar II":13, "Nisan":1, "Iyar":2, "Sivan":3, "Tamuz":4, "Av":5, "Elul":6};
-        return { d, mIdx: mMap[mStr] || 0, display: hebFormat };
+        return { d, mIdx: mMap[mStr] || 0, hebStr, engStr };
     }
 
-    async function init() {
+    async function updateDisplay() {
+        const info = getHebrewInfo(currentDate);
+        const dw = currentDate.getDay();
+        const d = info.d;
+        const mIdx = info.mIdx;
+
+        document.getElementById('display-heb').innerText = info.hebStr;
+        document.getElementById('display-eng').innerText = info.engStr;
+        document.getElementById('date-picker').value = currentDate.toISOString().split('T')[0];
+
+        let key = "", lbl = "";
+
+        // בדיקות לפי הטבלה שלך
+        if (dw === 6) { key = "92"; lbl = "שבת קודש"; }
+        else if (mIdx === 1 && d >= 15 && d <= 21) { // פסח
+            const i = d - 15;
+            lbl = (d === 21) ? "שביעי של פסח" : toHeb(i) + " דחוה\"מ פסח";
+            if (d === 15) key = "114";
+            else if (d === 21) key = "18";
+            else if (dw === 2) key = "135"; // שלישי פסח
+            else if (dw === 3) key = "105"; // רביעי פסח
+            else if (i === 1) key = (dw === 0) ? "114" : "78";
+            else if (i === 2) key = (dw === 1) ? "78" : "80";
+            else if (i === 3) key = (dw === 0) ? "80" : "105";
+            else if (i === 4) key = (dw === 1) ? "105" : "135";
+            else key = (dw === 0 || dw === 4) ? "135" : (dw === 1 ? "105" : "66");
+        }
+        else if (mIdx === 7 && d >= 15 && d <= 21) { // סוכות
+            const i = d - 15;
+            lbl = (d === 21) ? "הושענא רבא" : toHeb(i) + " דחוה\"מ סוכות";
+            if (d === 15) key = "76"; else if (i === 1) key = "29"; else if (i === 2) key = "50";
+            else if (i === 3) key = (dw === 0) ? "50" : "94_B";
+            else if (i === 4) key = (dw === 1) ? "94_B" : "94_A";
+            else if (i === 5) key = (dw === 0 || dw === 2) ? "94_A" : "81";
+            else key = "82";
+        }
+        else if (mIdx === 3 && d === 6) { key = "19"; lbl = "חג השבועות"; }
+        else if ((mIdx === 9 && d >= 25) || (mIdx === 10 && d <= 2)) { key = "30"; lbl = "חנוכה"; }
+        else if ((mIdx === 12 || mIdx === 13) && d === 14) { key = "22"; lbl = "פורים"; }
+        else if (d === 1 || d === 30) { key = "104"; lbl = "ראש חודש"; }
+        else if (dw === 3) { key = "94"; }
+        else { key = {0:'24', 1:'48', 2:'82', 4:'81', 5:'93'}[dw]; }
+
         try {
-            const { d, mIdx, display } = getTodayHebrew();
-            const dw = new Date().getDay();
-            document.getElementById('date-str').innerText = display;
-
-            let key = "", lbl = "";
-
-            // 1. שבת קודש
-            if (dw === 6) { key = "92"; lbl = "שבת קודש"; }
-            
-            // 2. חוה"מ פסח (ניסן)
-            else if (mIdx === 1 && d >= 15 && d <= 21) {
-                const i = d - 15;
-                lbl = (d === 21) ? "שביעי של פסח" : toHeb(i) + " דחוה\"מ פסח";
-                
-                if (d === 15) key = "114";
-                else if (d === 21) key = "18";
-                else if (dw === 2) key = "135"; // יום שלישי - קל"ה (היום!)
-                else if (dw === 3) key = "105"; // יום רביעי - ק"ה
-                else if (i === 1) key = (dw === 0) ? "114" : "78";
-                else if (i === 2) key = (dw === 1) ? "78" : "80";
-                else if (i === 3) key = (dw === 0) ? "80" : "105";
-                else if (i === 4) key = (dw === 1) ? "105" : "135";
-                else if (i === 5) key = (dw === 0 || dw === 4) ? "135" : (dw === 1 ? "105" : "66");
-            }
-            
-            // 3. חוה"מ סוכות (תשרי)
-            else if (mIdx === 7 && d >= 15 && d <= 21) {
-                const i = d - 15;
-                lbl = (d === 21) ? "הושענא רבא" : toHeb(i) + " דחוה\"מ סוכות";
-                
-                if (d === 15) key = "76";
-                else if (i === 1) key = "29";
-                else if (i === 2) key = "50";
-                else if (i === 3) key = (dw === 0) ? "50" : "94_B";
-                else if (i === 4) key = (dw === 1) ? "94_B" : "94_A";
-                else if (i === 5) key = (dw === 0 || dw === 2) ? "94_A" : "81";
-                else key = "82";
-            }
-            
-            // 4. חגים נוספים (שבועות, חנוכה, פורים)
-            else if (mIdx === 3 && d === 6) { key = "19"; lbl = "חג השבועות"; }
-            else if ((mIdx === 9 && d >= 25) || (mIdx === 10 && d <= 2)) { key = "30"; lbl = "חנוכה"; }
-            else if ((mIdx === 12 || mIdx === 13) && d === 14) { key = "22"; lbl = "פורים"; }
-            
-            // 5. ראש חודש
-            else if (d === 1 || d === 30) { key = "104"; lbl = "ראש חודש"; }
-            
-            // 6. ימי חול רגילים
-            else if (dw === 3) { key = "94"; }
-            else { key = {0:'24', 1:'48', 2:'82', 4:'81', 5:'93'}[dw]; }
-
             const res = await fetch('psalms.json?v=' + Date.now());
             const data = await res.json();
-            let body = "", baseKey = key.split('_')[0], title = "מזמור " + toHeb(baseKey);
-
+            let body = "", base = key.split('_')[0], title = "מזמור " + toHeb(base);
             if (key === "94") {
                 body = Object.values(data["94_A"]).join(' ') + "\n\n" + Object.values(data["94_B"]).join(' ');
             } else {
                 const p = data[key];
-                body = (typeof p === 'object' ? Object.values(p).join(' ') : p) || "המזמור חסר במערכת";
+                body = (typeof p === 'object' ? Object.values(p).join(' ') : p) || "המזמור חסר";
                 if (key === "94_A") title += " (א'-ט\"ו)";
                 if (key === "94_B") title += " (ט\"ז-כ\"ג)";
             }
-
             document.getElementById('psalm-title').innerText = title;
             document.getElementById('psalm-label').innerText = lbl;
             document.getElementById('psalm-content').innerText = body.trim();
-
-        } catch (e) {
-            document.getElementById('psalm-title').innerText = "שגיאה";
-        }
+        } catch (e) { document.getElementById('psalm-title').innerText = "שגיאת טעינה"; }
     }
-    window.onload = init;
+
+    function changeDate(days) { currentDate.setDate(currentDate.getDate() + days); updateDisplay(); }
+    function resetToToday() { currentDate = new Date(); updateDisplay(); }
+    function pickDate(val) { if(val) { currentDate = new Date(val); updateDisplay(); } }
+
+    window.onload = updateDisplay;
 </script>
 </body>
 </html>
