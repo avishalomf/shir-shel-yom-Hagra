@@ -6,46 +6,50 @@
     <meta name="theme-color" content="#2c3e50">
     <meta name="apple-mobile-web-app-capable" content="yes">
     
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="./favicon.png">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+    <link rel="manifest" href="./manifest.json">
     
-    <title>v1.3.2 - שיר של יום</title>
+    <title>v1.3.4 - שיר של יום</title>
     <script src="https://cdn.jsdelivr.net/npm/@hebcal/core@latest/dist/bundle.min.js"></script>
     
     <style>
         :root { --primary: #2c3e50; --secondary: #e74c3c; --bg: #f4f7f6; --text: #2d3436; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 0; direction: rtl; color: var(--text); }
-        .version-header { font-size: 0.7rem; color: #b2bec3; text-align: center; margin-top: 5px; }
+        .version-header { font-size: 0.7rem; color: #b2bec3; text-align: center; margin-top: 5px; font-family: monospace; }
         .container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 600px; width: 92%; margin: 10px auto; text-align: center; }
         .nav-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; }
-        .nav-btn { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 12px; cursor: pointer; font-weight: bold; flex: 1; }
-        #date-input { border: 1px solid #ccc; padding: 10px; border-radius: 10px; width: 80%; text-align: center; margin-bottom: 15px; }
-        #hebrew-date { font-size: 1.3rem; font-weight: bold; color: var(--primary); margin: 10px 0; }
-        .moed-label { background: var(--secondary); color: white; padding: 6px 25px; border-radius: 25px; font-weight: bold; margin: 15px 0; display: inline-block; }
-        #psalm-title { color: var(--primary); border-bottom: 3px solid var(--secondary); padding-bottom: 8px; margin: 15px 0; }
-        #psalm-content { font-size: 1.6rem; line-height: 1.8; text-align: justify; white-space: pre-wrap; margin-top: 20px; }
+        .nav-btn { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 12px; cursor: pointer; font-weight: bold; flex: 1; font-size: 1rem; }
+        #date-input { border: 1px solid #ccc; padding: 10px; border-radius: 10px; font-family: inherit; font-size: 1rem; width: 80%; text-align: center; margin-bottom: 15px; }
+        #hebrew-date { font-size: 1.3rem; font-weight: bold; color: var(--primary); line-height: 1.4; margin: 10px 0; }
+        .moed-label { background: var(--secondary); color: white; padding: 6px 25px; border-radius: 25px; font-size: 1rem; font-weight: bold; margin: 15px 0; display: inline-block; }
+        #psalm-title { color: var(--primary); border-bottom: 3px solid var(--secondary); padding-bottom: 8px; margin: 15px 0; font-size: 1.8rem; }
+        #psalm-content { font-size: 1.6rem; line-height: 1.8; text-align: justify; white-space: pre-wrap; margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px; }
     </style>
 </head>
 <body>
-<div class="version-header">Build: v1.3.2</div>
-<div class="container">
-    <input type="date" id="date-input" onchange="pickDate(this.value)">
-    <div class="nav-controls">
-        <button class="nav-btn" onclick="changeDate(1)">→ יום קודם</button>
-        <button class="nav-btn" onclick="changeDate(-1)">יום הבא ←</button>
+
+<div id="app-root">
+    <div class="version-header">Build: v1.3.4</div>
+    <div class="container">
+        <div class="date-picker-section">
+            <input type="date" id="date-input" onchange="pickDate(this.value)">
+        </div>
+        <div class="nav-controls">
+            <button class="nav-btn" onclick="changeDate(1)">→ יום קודם</button>
+            <button class="nav-btn" onclick="changeDate(-1)">יום הבא ←</button>
+        </div>
+        <div id="hebrew-date">טוען...</div>
+        <div id="moed-container"></div>
+        <h1 id="psalm-title">---</h1>
+        <div id="psalm-content">טוען מזמור...</div>
     </div>
-    <div id="hebrew-date">טוען...</div>
-    <div id="moed-container"></div>
-    <h1 id="psalm-title">---</h1>
-    <div id="psalm-content">טוען מזמור...</div>
 </div>
 
 <script>
     let currentDate = new Date();
     let psalmsCache = null;
 
-    // רישום Service Worker עם נתיב יחסי (עובד טוב יותר ב-PWA מותקן)
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js')
@@ -71,9 +75,11 @@
         const day = hDate.getDate();
         const month = hDate.getMonth(); 
         const dayOfWeek = date.getDay();
+
         if (day === 1 || day === 30) return { key: "104", label: "ראש חודש" };
         if (dayOfWeek === 6) return { key: "92", label: "שבת קודש" };
-        if (month === 1) {
+
+        if (month === 1) { // פסח
             if (day === 15) return { key: "114", label: "יום א' דפסח" };
             if (day === 21) return { key: "18", label: "שביעי של פסח" };
             if (day > 15 && day < 21) {
@@ -85,7 +91,7 @@
                 return { key: p[count-1], label: numToHeb(count) + " דחוה\"מ פסח" };
             }
         }
-        if (month === 7) {
+        if (month === 7) { // סוכות
             if (day === 15) return { key: "76", label: "יום א' דסוכות" };
             if (day === 22) return { key: "12", label: "שמיני עצרת" };
             if (day > 15 && day < 22) {
@@ -93,7 +99,8 @@
                 for (let d = 16; d <= day; d++) {
                     if (new hebcal.HDate(d, 7, hDate.getFullYear()).greg().getDay() !== 6) count++;
                 }
-                const s = ["29", "50", "94_A", "94_B", "81", "82"];
+                // סדר המזמורים לסוכות (לפי מנהג הגר"א - יום ג' הוא 94_B, יום ד' הוא 94_A)
+                const s = ["29", "50", "94_B", "94_A", "81", "82"];
                 return { key: s[count-1], label: (day===21)?"הושענא רבא":numToHeb(count)+" דחוה\"מ סוכות" };
             }
         }
@@ -110,15 +117,17 @@
             const info = determinePsalmKey(currentDate);
             document.getElementById('moed-container').innerHTML = info.label ? `<div class="moed-label">${info.label}</div>` : "";
             
-            // טעינה יחסית של ה-JSON
             if (!psalmsCache) psalmsCache = await (await fetch('./psalms.json')).json();
             
             let data = psalmsCache[info.key];
             if (data) {
                 let baseNum = info.key.split('_')[0];
                 let titleText = "מזמור " + numToHeb(baseNum);
+                
+                // לוגיקת כותרות מיוחדת לחלקים של צ"ד
                 if (info.key === "94_A") titleText += ", א'-ט\"ו";
                 else if (info.key === "94_B" && info.label.includes("סוכות")) titleText += ", ט\"ז-כ\"ג";
+
                 document.getElementById('psalm-title').innerText = titleText;
                 document.getElementById('psalm-content').innerText = (typeof data === 'object' ? Object.values(data).join(' ') : data).trim();
             }
