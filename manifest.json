@@ -1,7 +1,7 @@
 {
   "name": "שיר של יום - מנהג הגר\"א",
   "short_name": "שיר של יום",
-  "id": "./",
+  "id": "/",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -11,11 +11,6 @@
   "icons": [
     {
       "src": "favicon.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     }

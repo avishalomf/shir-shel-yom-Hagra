@@ -4,70 +4,129 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#2c3e50">
-    <title>שיר של יום - גרסה מקוונת</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <title>שיר של יום - מנהג הגר"א</title>
+    <script src="https://cdn.jsdelivr.net/npm/@hebcal/core@latest/dist/bundle.min.js"></script>
     <style>
         :root { --primary: #2c3e50; --secondary: #e74c3c; --bg: #f4f7f6; --text: #2d3436; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; direction: rtl; color: var(--text); }
-        .container { background: white; padding: 20px; border-radius: 15px; max-width: 600px; margin: 20px auto; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        button { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        .moed { background: var(--secondary); color: white; padding: 5px 15px; border-radius: 20px; display: inline-block; margin: 10px 0; font-weight: bold; }
-        #content { font-size: 1.5rem; line-height: 1.8; white-space: pre-wrap; margin-top: 20px; text-align: justify; }
-        .offline-badge { font-size: 0.7rem; color: #95a5a6; margin-top: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 0; direction: rtl; color: var(--text); -webkit-tap-highlight-color: transparent; }
+        #app-root { display: flex; flex-direction: column; align-items: center; min-height: 100vh; width: 100%; }
+        .container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 600px; width: 92%; margin: 20px auto; text-align: center; }
+        .nav-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        button { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 12px; cursor: pointer; font-weight: bold; min-width: 90px; }
+        #hebrew-date { font-size: 1.25rem; font-weight: bold; color: var(--primary); }
+        .moed-label { background: var(--secondary); color: white; padding: 6px 25px; border-radius: 25px; font-size: 1rem; font-weight: bold; margin: 15px 0; display: inline-block; }
+        #psalm-title { color: var(--primary); border-bottom: 3px solid var(--secondary); padding-bottom: 8px; margin: 15px 0; font-size: 1.8rem; }
+        #psalm-content { font-size: 1.6rem; line-height: 1.8; text-align: justify; margin-top: 20px; white-space: pre-wrap; padding-top: 20px; border-top: 1px solid #eee; }
+        .footer-info { margin-top: auto; font-size: 0.75rem; color: #b2bec3; padding: 20px; text-align: center; width: 100%; }
     </style>
+
+<meta name="NetsparkQuiltingResult" total-length="7253" removed="0" rules-found="w3390,w6223,w6224,w2655,w3012,w2577,w6863,w73,w21675,r7373s-10p1,w30661,w6563" />
 </head>
 <body>
+<div id="app-root">
     <div class="container">
-        <div class="nav">
-            <button onclick="changeDate(1)">→ יום קודם</button>
-            <div id="date-display">טוען...</div>
-            <button onclick="changeDate(-1)">יום הבא ←</button>
+        <div class="nav-controls">
+            <button onclick="changeDate(1)">→ קודם</button>
+            <div id="hebrew-date">טוען...</div>
+            <button onclick="changeDate(-1)">הבא ←</button>
         </div>
-        <div id="moed-tag"></div>
-        <h2 id="title"></h2>
-        <div id="content"></div>
-        <div class="offline-badge">גרסה 5.0 - עבודה ללא רשת מוטמעת</div>
+        <div id="moed-container"></div>
+        <h1 id="psalm-title">מזמור...</h1>
+        <div id="psalm-content">טוען מזמור...</div>
     </div>
-
+    <div class="footer-info">גרסה 5.0 | אופליין מלא | מנהג הגר"א</div>
+</div>
 <script>
-    // מאגר מזמורים בסיסי מוטמע (דוגמה - יש להשלים את השאר באותו פורמט)
-    const psalms = {
-        "24": "לְדָוִד מִזְמוֹר לַיהוָה הָאָרֶץ וּמְלוֹאָהּ...",
-        "48": "שִׁיר מִזְמוֹר לִבְנֵי קֹרַח גָּדוֹל יְהוָה וּמְהֻלָּל מְאֹד...",
-        "82": "מִזְמוֹר לְאָסָף אֱלֹהִים נִצָּב בַּעֲדַת אֵל...",
-        "94": "אֵל נְקָמוֹת יְהוָה אֵל נְקָמוֹת הוֹפִיעַ...",
-        "81": "לַמְנַצֵּחַ עַל הַגִּתִּית לְאָסָף הַרְנִינוּ לֵאלֹהִים עוּזֵּנוּ...",
-        "93": "יְהוָה מָלָךְ גֵּאוּת לָבֵשׁ...",
-        "92": "מִזְמוֹר שִׁיר לְיוֹם הַשַּׁבָּת טוֹב לְהֹדוֹת לַיהוָה...",
-        "114": "בְּצֵאת יִשְׂרָאֵל מִמִּצְרָיִם בֵּית יַעֲקֹב מֵעַם לֹעֵז...",
-        "18": "לַמְנַצֵּחַ לְעֶבֶד יְהוָה לְדָוִד אֲשֶׁר דִּבֶּר לַיהוָה אֶת דִּבְרֵי הַשִּׁירָה הַזֹּאת..."
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW failed', err));
+        });
+    }
+
+    let currentDate = new Date();
+    let psalmsCache = null;
+
+    function numToHeb(num) {
+        if (num === "94_A") return 'צ"ד (א)';
+        let n = parseInt(num);
+        if (isNaN(n)) return num;
+        if (n === 15) return 'טו'; if (n === 16) return 'טז';
+        const letters = [{v:400, l:'ת'}, {v:300, l:'ש'}, {v:200, l:'ר'}, {v:100, l:'ק'}, {v:90, l:'צ'}, {v:80, l:'פ'}, {v:70, l:'ע'}, {v:60, l:'ס'}, {v:50, l:'נ'}, {v:40, l:'מ'}, {v:30, l:'ל'}, {v:20, l:'כ'}, {v:10, l:'י'}, {v:9, l:'ט'}, {v:8, l:'ח'}, {v:7, l:'ז'}, {v:6, l:'ו'}, {v:5, l:'ה'}, {v:4, l:'ד'}, {v:3, l:'ג'}, {v:2, l:'ב'}, {v:1, l:'א'}];
+        let str = "";
+        for (let i = 0; i < letters.length; i++) {
+            while (n >= letters[i].v) { str += letters[i].l; n -= letters[i].v; }
+        }
+        return str.length > 1 ? str.slice(0, -1) + '"' + str.slice(-1) : str + "'";
+    }
+
+    function determinePsalmKey(date) {
+        const hDate = new hebcal.HDate(date);
+        const day = hDate.getDate();
+        const month = hDate.getMonth(); 
+        const dayOfWeek = date.getDay();
+
+        if (dayOfWeek === 6) return { key: "92", label: "שבת קודש" };
+        if (month === 1) { // Nisan
+            if (day === 15) return { key: "114", label: "יום א' דפסח" };
+            if (day === 21) return { key: "18", label: "שביעי של פסח" };
+            if (day > 15 && day < 21) {
+                let count = 0;
+                for (let d = 16; d <= day; d++) {
+                    if (new hebcal.HDate(d, 1, hDate.getFullYear()).greg().getDay() !== 6) count++;
+                }
+                const p = ["78", "80", "105", "135", "66"];
+                return { key: p[count-1], label: numToHeb(count) + " דחוה\"מ" };
+            }
+        }
+        if (month === 7) { // Tishrei
+            if (day === 15) return { key: "76", label: "יום א' דסוכות" };
+            if (day === 22) return { key: "12", label: "שמיני עצרת" };
+            if (day > 15 && day < 22) {
+                let count = 0;
+                for (let d = 16; d <= day; d++) {
+                    if (new hebcal.HDate(d, 7, hDate.getFullYear()).greg().getDay() !== 6) count++;
+                }
+                const s = ["29", "50", "94_A", "94", "81", "82"];
+                return { key: s[count-1], label: (day===21)?"הושענא רבא":numToHeb(count)+" דחוה\"מ" };
+            }
+        }
+        if (day === 1 || day === 30) return { key: "104", label: "ראש חודש" };
+        return { key: {0:'24', 1:'48', 2:'82', 3:'94_A', 4:'81', 5:'93'}[dayOfWeek], label: "" };
+    }
+
+    async function loadPsalm() {
+        try {
+            const hDate = new hebcal.HDate(currentDate);
+            const daysArr = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
+            document.getElementById('hebrew-date').innerHTML = "יום " + daysArr[currentDate.getDay()] + ", " + numToHeb(hDate.getDate()) + " ב" + hDate.getMonthName('he') + " " + numToHeb(hDate.getFullYear());
+
+            const info = determinePsalmKey(currentDate);
+            document.getElementById('moed-container').innerHTML = info.label ? `<div class="moed-label">${info.label}</div>` : "";
+            
+            if (!psalmsCache) {
+                const res = await fetch('./psalms.json');
+                psalmsCache = await res.json();
+            }
+            
+            let data = psalmsCache[info.key];
+            if (data) {
+                document.getElementById('psalm-title').innerText = "מזמור " + numToHeb(info.key.split('_')[0]);
+                let txt = typeof data === 'object' ? Object.values(data).join(' ') : data;
+                document.getElementById('psalm-content').innerText = txt.replace(/&nbsp;/g, ' ').replace(/&thinsp;/g, '').replace(/<\/?[^>]+(>|$)/g, "").trim();
+            }
+        } catch (e) { 
+            console.error(e);
+            document.getElementById('psalm-content').innerText = "שגיאה בטעינת הנתונים. וודא שקובץ psalms.json קיים.";
+        }
+    }
+
+    function changeDate(d) { currentDate.setDate(currentDate.getDate() - d); loadPsalm(); }
+
+    window.onload = () => { 
+        let c = setInterval(() => { if (typeof hebcal !== 'undefined') { clearInterval(c); loadPsalm(); } }, 100); 
     };
-
-    let viewDate = new Date();
-
-    function update() {
-        const day = viewDate.getDay();
-        const days = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
-        document.getElementById('date-display').innerText = "יום " + days[day] + "\n" + viewDate.toLocaleDateString('he-IL');
-
-        let key = "";
-        let label = "";
-
-        // לוגיקה פשוטה לימי חול ושבת (Offline)
-        const weekly = {0:"24", 1:"48", 2:"82", 3:"94", 4:"81", 5:"93", 6:"92"};
-        key = weekly[day];
-
-        // הצגת הנתונים
-        document.getElementById('title').innerText = "מזמור " + (key === "92" ? "שבת" : key);
-        document.getElementById('content').innerText = psalms[key] || "המזמור יוטמע בסינכרון הבא";
-    }
-
-    function changeDate(d) {
-        viewDate.setDate(viewDate.getDate() - d);
-        update();
-    }
-
-    update();
 </script>
 </body>
 </html>
