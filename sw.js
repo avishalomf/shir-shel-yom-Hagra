@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shir-shel-yom-v5-0';
+const CACHE_NAME = 'shir-shel-yom-v5-1';
 const ASSETS = [
     './',
     './index.html',
@@ -7,24 +7,14 @@ const ASSETS = [
     './favicon.png'
 ];
 
-self.addEventListener('install', (e) => {
-    e.waitUntil(
+self.addEventListener('install', (event) => {
+    event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
     );
 });
 
-self.addEventListener('activate', (e) => {
-    e.waitUntil(
-        caches.keys().then((keys) => {
-            return Promise.all(keys.map((key) => {
-                if (key !== CACHE_NAME) return caches.delete(key);
-            }));
-        })
-    );
-});
-
-self.addEventListener('fetch', (e) => {
-    e.respondWith(
-        caches.match(e.request).then((response) => response || fetch(e.request))
+self.addEventListener('fetch', (event) => {
+    event.respondWith(
+        caches.match(event.request).then((response) => response || fetch(event.request))
     );
 });
