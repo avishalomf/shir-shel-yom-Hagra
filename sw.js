@@ -1,4 +1,3 @@
-// Version: v1.7.16 - Service Worker
 const CACHE_NAME = 'shir-shel-yom-cache-v1';
 const urlsToCache = [
   './',
@@ -6,7 +5,6 @@ const urlsToCache = [
   './manifest.json'
 ];
 
-// התקנת ה-Service Worker ושמירת הקבצים במטמון
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -16,7 +14,6 @@ self.addEventListener('install', event => {
   );
 });
 
-// שליפת קבצים במצב אופליין או מהרשת
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
