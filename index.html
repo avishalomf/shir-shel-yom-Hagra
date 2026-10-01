@@ -60,8 +60,7 @@
         const mStr = partsEn.find(p => p.type === 'month').value;
         const yNum = parseInt(partsEn.find(p => p.type === 'year').value);
         
-        // תיקון תצוגת השנה לפורמט אותיות (תשפ"ו)
-        const yearSuffix = yNum % 100; // ייתן 86
+        const yearSuffix = yNum % 100;
         const yHeb = "ה'תש" + toHeb(yearSuffix);
         
         const hebMonthStr = new Intl.DateTimeFormat('he-u-ca-hebrew', {month:'long'}).format(date);
@@ -83,7 +82,6 @@
         let key = "", lbl = "";
         const d = info.d, mIdx = info.mIdx;
 
-        // לוגיקת החגים (הטבלה)
         if (dw === 6) { key = "92"; lbl = "שבת קודש"; }
         else if (mIdx === 1 && d >= 15 && d <= 21) { 
             const i = d - 15;
@@ -115,7 +113,8 @@
         else { key = {0:'24', 1:'48', 2:'82', 4:'81', 5:'93'}[dw]; }
 
         try {
-            const res = await fetch('psalms.json?v=' + Date.now());
+            // הוסר ה- ?v=... כדי לאפשר שליפה נכונה מה-Cache במצב Offline
+            const res = await fetch('psalms.json');
             const data = await res.json();
             let body = "", base = key.split('_')[0], title = "מזמור " + toHeb(base);
             if (key === "94") {
@@ -129,7 +128,7 @@
             document.getElementById('psalm-title').innerText = title;
             document.getElementById('psalm-label').innerText = lbl;
             document.getElementById('psalm-content').innerText = body.trim();
-        } catch (e) { document.getElementById('psalm-title').innerText = "שגיאה"; }
+        } catch (e) { document.getElementById('psalm-title').innerText = "שגיאה בטעינת הנתונים"; }
     }
 
     function changeDate(days) { currentDate.setDate(currentDate.getDate() + days); updateDisplay(); }
