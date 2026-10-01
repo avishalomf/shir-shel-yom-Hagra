@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>v1.7.4 - שיר של יום</title>
+    <title>v1.7.5 - שיר של יום</title>
     <style>
         :root { --primary: #2c3e50; --accent: #c0392b; --bg: #f4f7f6; --success: #16a085; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
@@ -26,7 +26,7 @@
 <body>
 
 <div class="container">
-    <div class="version-badge">v1.7.4</div>
+    <div class="version-badge">v1.7.5</div>
     <div class="date-header">
         <div class="day-name" id="display-day"></div>
         <div class="date-heb" id="display-heb"></div>
@@ -43,11 +43,11 @@
     <div id="psalm-label"></div>
     <h1 id="psalm-title">טוען...</h1>
     <div id="psalm-content">טוען...</div>
-    <div class="footer">VERSION 1.7.4 | אבישלום</div>
+    <div class="footer">VERSION 1.7.5 | אבישלום</div>
 </div>
 
 <script>
-    // VERSION: 1.7.4
+    // VERSION: 1.7.5
     let currentDate = new Date();
     const HEB_CHARS = {1:'א',2:'ב',3:'ג',4:'ד',5:'ה',6:'ו',7:'ז',8:'ח',9:'ט',10:'י',11:'י"א',12:'י"ב',13:'י"ג',14:'י"ד',15:'ט"ו',16:'ט"ז',17:'י"ז',18:'י"ח',19:'י"ט',20:'כ',21:'כ"א',22:'כ"ב',23:'כ"ג',24:'כ"ד',25:'כ"ה',26:'כ"ו',27:'כ"ז',28:'כ"ח',29:'כ"ט',30:'ל',48:'מ"ח',50:'נ',66:'ס"ו',76:'ע"ו',78:'ע"ח',80:'פ',81:'פ"א',82:'פ"ב',86:'פ"ו',92:'צ"ב',93:'צ"ג',94:'צ"ד',104:'ק"ד',105:'ק"ה',114:'קי"ד',135:'קל"ה'};
     const DAYS_HEB = ["יום ראשון", "יום שני", "יום שלישי", "יום רביעי", "יום חמישי", "יום שישי", "שבת קודש"];
@@ -113,7 +113,6 @@
         else { key = {0:'24', 1:'48', 2:'82', 4:'81', 5:'93'}[dw]; }
 
         try {
-            // הוסר ה- ?v=... כדי לאפשר שליפה נכונה מה-Cache במצב Offline
             const res = await fetch('psalms.json');
             const data = await res.json();
             let body = "", base = key.split('_')[0], title = "מזמור " + toHeb(base);
