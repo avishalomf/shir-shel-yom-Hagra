@@ -1,22 +1,39 @@
-const CACHE_NAME = 'shir-shel-yom-v1.7.6';
-const ASSETS = [
+// Version: v1.7.12 - Service Worker
+const CACHE_NAME = 'shir-shel-yom-v1.7.12';
+const urlsToCache = [
   './',
   './index.html',
-  './manifest.json',
-  './psalms.json',
-  './favicon.png',
-  './icon-192.png'
+  './manifest.json'
 ];
 
-self.addEventListener('install', (e) => {
+// התקנה ודילוג על המתנה לעדכון מהיר
+self.addEventListener('install', event => {
   self.skipWaiting();
-  e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(urlsToCache))
+  );
 });
 
-self.addEventListener('activate', (e) => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.map(k => k !== CACHE_NAME ? caches.delete(k) : null))));
+// הפעלה וניקוי כל המטמונים הישנים
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
+  );
 });
 
-self.addEventListener('fetch', (e) => {
-  e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+// שליפת נתונים ברשת עם גיבוי למטמון (אופליין)
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => response || fetch(event.request))
+  );
 });
