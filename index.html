@@ -103,7 +103,7 @@
 </head>
 <body>
 
-    <div class="version">v1.7.6</div>
+    <div class="version">v5.0</div>
 
     <header>
         <div id="day-of-week" class="day-title">יום רביעי</div>
@@ -122,11 +122,12 @@
     </div>
 
     <div class="song-container">
-        <div id="songTitle" class="song-title"></div>
-        <div id="songLyrics" class="song-lyrics"></div>
+        <div id="songTitle" class="song-title">מזמור צ"ד</div>
+        <div id="songLyrics" class="song-lyrics">טוען את מילות השיר...</div>
     </div>
 
     <script>
+        // טעינת הנתונים ורישום Service Worker מקורי
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
