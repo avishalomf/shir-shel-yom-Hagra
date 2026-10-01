@@ -15,7 +15,9 @@
         .container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 600px; width: 92%; margin: 20px auto; text-align: center; }
         .nav-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         button { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 12px; cursor: pointer; font-weight: bold; min-width: 90px; }
+        #date-container { display: flex; flex-direction: column; align-items: center; gap: 5px; }
         #hebrew-date { font-size: 1.25rem; font-weight: bold; color: var(--primary); }
+        #gregorian-date { font-size: 0.85rem; color: #7f8c8d; }
         .moed-label { background: var(--secondary); color: white; padding: 6px 25px; border-radius: 25px; font-size: 1rem; font-weight: bold; margin: 15px 0; display: inline-block; }
         #psalm-title { color: var(--primary); border-bottom: 3px solid var(--secondary); padding-bottom: 8px; margin: 15px 0; font-size: 1.8rem; }
         #psalm-content { font-size: 1.6rem; line-height: 1.8; text-align: justify; margin-top: 20px; white-space: pre-wrap; padding-top: 20px; border-top: 1px solid #eee; }
@@ -27,14 +29,17 @@
     <div class="container">
         <div class="nav-controls">
             <button onclick="changeDate(1)">→ קודם</button>
-            <div id="hebrew-date">טוען...</div>
+            <div id="date-container">
+                <div id="hebrew-date">טוען...</div>
+                <div id="gregorian-date"></div>
+            </div>
             <button onclick="changeDate(-1)">הבא ←</button>
         </div>
         <div id="moed-container"></div>
         <h1 id="psalm-title">מזמור...</h1>
         <div id="psalm-content">טוען מזמור...</div>
     </div>
-    <div class="footer-info">גרסה 5.1 | עבודה ללא רשת | מנהג הגר"א</div>
+    <div class="footer-info">גרסה 5.2 | עבודה ללא רשת | מנהג הגר"א</div>
 </div>
 <script>
     if ('serviceWorker' in navigator) {
@@ -70,6 +75,29 @@
             res += units[num % 10];
         }
         return res.length > 1 ? res.slice(0, -1) + '"' + res.slice(-1) : res + "'";
+    }
+
+    // מיפוי חודשים לעברית למניעת תצוגה באנגלית
+    function getHebrewMonthName(hDate) {
+        const monthsHebrew = {
+            'Nisan': 'ניסן',
+            'Iyyar': 'אייר',
+            'Sivan': 'סיון',
+            'Tammuz': 'תמוז',
+            'Av': 'אב',
+            'Elul': 'אלול',
+            'Tishrei': 'תשרי',
+            'Cheshvan': 'חשון',
+            'Heshvan': 'חשון',
+            'Kislev': 'כסלו',
+            'Tevet': 'טבת',
+            'Shvat': 'שבט',
+            'Adar': 'אדר',
+            'Adar I': 'אדר א\'',
+            'Adar II': 'אדר ב\''
+        };
+        const engName = hDate.getMonthName();
+        return monthsHebrew[engName] || engName;
     }
 
     function determinePsalmKey(date) {
@@ -111,7 +139,14 @@
         try {
             const hDate = new hebcal.HDate(currentDate);
             const daysArr = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
-            document.getElementById('hebrew-date').innerHTML = "יום " + daysArr[currentDate.getDay()] + ", " + numToHeb(hDate.getDate()) + " ב" + hDate.getMonthName('he') + " " + numToHeb(hDate.getFullYear());
+            
+            // תאריך עברי עם חודש בעברית
+            const hebMonthStr = getHebrewMonthName(hDate);
+            document.getElementById('hebrew-date').innerHTML = "יום " + daysArr[currentDate.getDay()] + ", " + numToHeb(hDate.getDate()) + " ב" + hebMonthStr + " " + numToHeb(hDate.getFullYear());
+
+            // תאריך לועזי בקטן מתחתיו
+            const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
+            document.getElementById('gregorian-date').innerHTML = currentDate.toLocaleDateString('he-IL', options);
 
             const info = determinePsalmKey(currentDate);
             document.getElementById('moed-container').innerHTML = info.label ? `<div class="moed-label">${info.label}</div>` : "";
