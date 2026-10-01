@@ -1,160 +1,39 @@
-<!-- Version: v1.7.9 -->
-<!DOCTYPE html>
-<html lang="he" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>שיר של יום</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#2c3e50">
-    <style>
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background-color: #f8f9fa;
-            color: #212529;
-            margin: 0;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .version {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 12px;
-            background: #e9ecef;
-            padding: 2px 6px;
-            border-radius: 4px;
-            color: #6c757d;
-        }
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-            margin-top: 10px;
-        }
-        .day-title {
-            font-size: 1.2rem;
-            color: #2e7d32;
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
-        .hebrew-date {
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: #1a1a1a;
-            margin-bottom: 4px;
-        }
-        .gregorian-date {
-            font-size: 0.95rem;
-            color: #666;
-            margin-bottom: 16px;
-        }
-        .nav-buttons {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-        button, input[type="date"] {
-            background-color: #34495e;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 0.95rem;
-            cursor: pointer;
-        }
-        button:active {
-            background-color: #2c3e50;
-        }
-        .date-picker-container {
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        input[type="date"] {
-            background-color: white;
-            color: #333;
-            border: 1px solid #ccc;
-        }
-        .song-container {
-            width: 100%;
-            max-width: 600px;
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            text-align: center;
-        }
-        .song-title {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 20px;
-        }
-        .song-lyrics {
-            font-size: 1.25rem;
-            line-height: 2.2;
-            white-space: pre-wrap;
-            direction: rtl;
-        }
-    </style>
-</head>
-<body>
+// Version: v1.7.10 - Service Worker
+const CACHE_NAME = 'shir-shel-yom-v1.7.10';
+const urlsToCache = [
+  './',
+  './index.html',
+  './manifest.json'
+];
 
-    <!-- מספר גרסה בתצוגה -->
-    <div class="version">v1.7.9</div>
+// התקנה וניקון מטמון ישן
+self.addEventListener('install', event => {
+  self.skipWaiting(); // דחיפה מיידית של ה-SW החדש
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(urlsToCache))
+  );
+});
 
-    <header>
-        <div id="day-of-week" class="day-title">יום רביעי</div>
-        <div id="hebrew-date" class="hebrew-date">כ"א בתשרי ה'תשפ"ז</div>
-        <div id="gregorian-date" class="gregorian-date">7 באוקטובר 2026</div>
-    </header>
+// הפעלה ומחיקת קכשים ישנים
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName); // מוחק כל מטמון ישן
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
+  );
+});
 
-    <div class="nav-buttons">
-        <button onclick="changeDay(1)">יום הבא ←</button>
-        <button onclick="goToToday()">היום</button>
-        <button onclick="changeDay(-1)">→ יום קודם</button>
-    </div>
-
-    <div class="date-picker-container">
-        <input type="date" id="dateSelector" onchange="onDateSelected(this.value)">
-    </div>
-
-    <div class="song-container">
-        <div id="songTitle" class="song-title">מזמור צ"ד</div>
-        <div id="songLyrics" class="song-lyrics">אֵל-נְקָמוֹת יְהוָה, אֵל נְקָמוֹת הוֹפִיעַ.
-הִנְשֹׂא שֹׁפֵט הָאָרֶץ, הָשֵׂב גְּמוּל עַל-גֵּאִים.</div>
-    </div>
-
-    <script>
-        // רישום Service Worker עם מנגנון איפוס מטמון אוטומטי
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => {
-                        console.log('Service Worker registered!', reg);
-                        // בדיקה האם יש גרסה חדשה שממתינה ומאלץ רענון
-                        reg.onupdatefound = () => {
-                            const installingWorker = reg.installing;
-                            installingWorker.onstatechange = () => {
-                                if (installingWorker.state === 'installed') {
-                                    if (navigator.serviceWorker.controller) {
-                                        console.log('New version available, reloading...');
-                                        window.location.reload();
-                                    }
-                                }
-                            };
-                        };
-                    })
-                    .catch(err => console.log('Service Worker registration failed:', err));
-            });
-        }
-
-        function changeDay(offset) {}
-        function goToToday() {}
-        function onDateSelected(dateStr) {}
-    </script>
-</body>
-</html>
+// שליפת נתונים ברשת / אופליין
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => response || fetch(event.request))
+  );
+});
