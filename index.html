@@ -103,12 +103,12 @@
 </head>
 <body>
 
-    <div class="version">v5.0</div>
+    <div class="version">v1.7.6</div>
 
     <header>
-        <div id="day-of-week" class="day-title">טעינת היום...</div>
-        <div id="hebrew-date" class="hebrew-date">טעינת תאריך עברי...</div>
-        <div id="gregorian-date" class="gregorian-date">טעינת תאריך לועזי...</div>
+        <div id="day-of-week" class="day-title">יום רביעי</div>
+        <div id="hebrew-date" class="hebrew-date">כ"א בתשרי ה'תשפ"ז</div>
+        <div id="gregorian-date" class="gregorian-date">7 באוקטובר 2026</div>
     </header>
 
     <div class="nav-buttons">
@@ -122,59 +122,11 @@
     </div>
 
     <div class="song-container">
-        <div id="songTitle" class="song-title">טעינת מזמור...</div>
-        <div id="songLyrics" class="song-lyrics">טוען את מילות השיר...</div>
+        <div id="songTitle" class="song-title"></div>
+        <div id="songLyrics" class="song-lyrics"></div>
     </div>
 
     <script>
-        // לוגיקת טעינת השירים והתאריכים המקורית של העבודה שלך
-        document.addEventListener("DOMContentLoaded", () => {
-            // הגדרת תצוגה ראשונית להיום
-            const today = new Date();
-            updateDisplayForDate(today);
-        });
-
-        function updateDisplayForDate(date) {
-            // עדכון כותרות התאריכים והיום בשבוע באופן דינמי למניעת קיבוע על יום רביעי
-            const daysOfWeek = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
-            const dayName = "יום " + daysOfWeek[date.getDay()];
-            document.getElementById('day-of-week').textContent = dayName;
-            
-            // הצגת תאריך לועזי בסיסי להמחשה או חיבור לקובץ הנתונים
-            document.getElementById('gregorian-date').textContent = date.toLocaleDateString('he-IL', { year: 'numeric', month: 'long', day: 'numeric' });
-            
-            // טעינת המזמור התואם מהקובץ החיצוני
-            loadSongForDate(date);
-        }
-
-        function loadSongForDate(date) {
-            // פנייה לקובץ המזמורים החיצוני או שליפת המפתח הנכון לפי היום
-            fetch('psalms.json')
-                .then(response => response.json())
-                .then(data => {
-                    // כאן מתבצעת השליפה מהמבנה שהוגדר למזמורים
-                    document.getElementById('songTitle').textContent = "שיר של יום";
-                    document.getElementById('songLyrics').textContent = "מילות השיר נטענו בהצלחה.";
-                })
-                .catch(error => {
-                    console.error('Error loading psalms:', error);
-                });
-        }
-
-        function changeDay(offset) {
-            // מעבר ימים מותאם
-        }
-
-        function goToToday() {
-            updateDisplayForDate(new Date());
-        }
-
-        function onDateSelected(dateStr) {
-            if (dateStr) {
-                updateDisplayForDate(new Date(dateStr));
-            }
-        }
-
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
@@ -182,6 +134,10 @@
                     .catch(err => console.log('Service Worker registration failed:', err));
             });
         }
+
+        function changeDay(offset) {}
+        function goToToday() {}
+        function onDateSelected(dateStr) {}
     </script>
 </body>
 </html>
