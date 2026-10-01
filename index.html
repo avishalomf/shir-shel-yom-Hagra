@@ -1,4 +1,4 @@
-<!-- Version: v1.7.11 -->
+<!-- Version: v1.7.15 -->
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -94,17 +94,18 @@
             margin-bottom: 20px;
         }
         .song-lyrics {
-            font-size: 1.25rem;
-            line-height: 2.2;
+            font-size: 1.15rem;
+            line-height: 2.0;
             white-space: pre-wrap;
             direction: rtl;
+            text-align: right;
         }
     </style>
 </head>
 <body>
 
     <!-- מספר גרסה בתצוגה -->
-    <div class="version">v1.7.11</div>
+    <div class="version">v1.7.15</div>
 
     <header>
         <div id="day-of-week" class="day-title">יום רביעי</div>
@@ -123,9 +124,8 @@
     </div>
 
     <div class="song-container">
-        <div id="songTitle" class="song-title">מזמור צ"ד</div>
-        <div id="songLyrics" class="song-lyrics">אֵל-נְקָמוֹת יְהוָה, אֵל נְקָמוֹת הוֹפִיעַ.
-הִנְשֹׂא שֹׁפֵט הָאָרֶץ, הָשֵׂב גְּמוּל עַל-גֵּאִים.</div>
+        <div id="songTitle" class="song-title">טעינת מזמור...</div>
+        <div id="songLyrics" class="song-lyrics">הטקסט יטען מקובץ המזמורים החיצוני.</div>
     </div>
 
     <script>
@@ -138,17 +138,9 @@
             });
         }
 
-        function changeDay(offset) {
-            // לוגיקת מעבר ימים
-        }
-
-        function goToToday() {
-            // חזרה להיום
-        }
-
-        function onDateSelected(dateStr) {
-            // בחירת תאריך מותאמת
-        }
+        function changeDay(offset) {}
+        function goToToday() {}
+        function onDateSelected(dateStr) {}
     </script>
 </body>
 </html>
