@@ -1,4 +1,4 @@
-<!-- Version: v5.4 -->
+<!-- Version: v5.5 -->
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -23,12 +23,12 @@
         .moed-label { background: var(--secondary); color: white; padding: 6px 25px; border-radius: 25px; font-size: 1rem; font-weight: bold; margin: 15px 0; display: inline-block; }
         #psalm-title { color: var(--primary); border-bottom: 3px solid var(--secondary); padding-bottom: 8px; margin: 15px 0; font-size: 1.8rem; }
         #psalm-content { font-size: 1.6rem; line-height: 1.8; text-align: justify; margin-top: 20px; white-space: pre-wrap; padding-top: 20px; border-top: 1px solid #eee; }
-        .footer-info { margin-top: auto; font-size: 0.75rem; color: #b2bec3; padding: 20px; text-align: center; }
+        .footer-info { margin-top: auto; font-size: 0.75rem; color: #b2bec3; padding: 20px; text-align: center; line-height: 1.6; }
     </style>
 </head>
 <body>
 <div id="app-root">
-    <div class="version-badge">v5.4</div>
+    <div class="version-badge">v5.5</div>
     <div class="container">
         <div class="nav-controls">
             <button onclick="changeDate(1)">→ קודם</button>
@@ -42,7 +42,7 @@
         <h1 id="psalm-title">מזמור...</h1>
         <div id="psalm-content">טוען מזמור...</div>
     </div>
-    <div class="footer-info">עבודה מלאה ללא רשת | מנהג הגר"א</div>
+    <div class="footer-info">גרסה 5.5 | עבודה מלאה ללא רשת (Offline) | מנהג הגר"א</div>
 </div>
 <script>
     if ('serviceWorker' in navigator) {
@@ -156,7 +156,6 @@
                     const res = await fetch('./psalms.json');
                     psalmsCache = await res.json();
                 } catch (netErr) {
-                    // גיבוי למקרה שהטעינה נכשלה לגמרי ברשת
                     console.warn("Using offline fallback for psalms.json");
                 }
             }
