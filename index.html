@@ -1,4 +1,4 @@
-<!-- Version: v1.7.8 -->
+<!-- Version: v1.7.9 -->
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -104,7 +104,7 @@
 <body>
 
     <!-- מספר גרסה בתצוגה -->
-    <div class="version">v1.7.8</div>
+    <div class="version">v1.7.9</div>
 
     <header>
         <div id="day-of-week" class="day-title">יום רביעי</div>
@@ -129,26 +129,32 @@
     </div>
 
     <script>
-        // רישום Service Worker לעבודה במצב Offline
+        // רישום Service Worker עם מנגנון איפוס מטמון אוטומטי
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker registered!', reg))
+                    .then(reg => {
+                        console.log('Service Worker registered!', reg);
+                        // בדיקה האם יש גרסה חדשה שממתינה ומאלץ רענון
+                        reg.onupdatefound = () => {
+                            const installingWorker = reg.installing;
+                            installingWorker.onstatechange = () => {
+                                if (installingWorker.state === 'installed') {
+                                    if (navigator.serviceWorker.controller) {
+                                        console.log('New version available, reloading...');
+                                        window.location.reload();
+                                    }
+                                }
+                            };
+                        };
+                    })
                     .catch(err => console.log('Service Worker registration failed:', err));
             });
         }
 
-        function changeDay(offset) {
-            // לוגיקת מעבר ימים
-        }
-
-        function goToToday() {
-            // חזרה להיום
-        }
-
-        function onDateSelected(dateStr) {
-            // בחירת תאריך מותאמת
-        }
+        function changeDay(offset) {}
+        function goToToday() {}
+        function onDateSelected(dateStr) {}
     </script>
 </body>
 </html>
