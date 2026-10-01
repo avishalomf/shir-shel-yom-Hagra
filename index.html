@@ -1,4 +1,4 @@
-<!-- Version: v1.7.15 -->
+<!-- Version: v1.7.16 -->
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -105,7 +105,7 @@
 <body>
 
     <!-- מספר גרסה בתצוגה -->
-    <div class="version">v1.7.15</div>
+    <div class="version">v1.7.16</div>
 
     <header>
         <div id="day-of-week" class="day-title">יום רביעי</div>
@@ -124,12 +124,11 @@
     </div>
 
     <div class="song-container">
-        <div id="songTitle" class="song-title">טעינת מזמור...</div>
-        <div id="songLyrics" class="song-lyrics">הטקסט יטען מקובץ המזמורים החיצוני.</div>
+        <div id="songTitle" class="song-title"></div>
+        <div id="songLyrics" class="song-lyrics"></div>
     </div>
 
     <script>
-        // רישום Service Worker לעבודה במצב Offline
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
