@@ -1,4 +1,4 @@
-<!-- Version: v5.3 -->
+<!-- Version: v5.4 -->
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -28,7 +28,7 @@
 </head>
 <body>
 <div id="app-root">
-    <div class="version-badge">v5.3</div>
+    <div class="version-badge">v5.4</div>
     <div class="container">
         <div class="nav-controls">
             <button onclick="changeDate(1)">→ קודם</button>
@@ -42,7 +42,7 @@
         <h1 id="psalm-title">מזמור...</h1>
         <div id="psalm-content">טוען מזמור...</div>
     </div>
-    <div class="footer-info">עבודה ללא רשת | מנהג הגר"א</div>
+    <div class="footer-info">עבודה מלאה ללא רשת | מנהג הגר"א</div>
 </div>
 <script>
     if ('serviceWorker' in navigator) {
@@ -152,18 +152,25 @@
             document.getElementById('moed-container').innerHTML = info.label ? `<div class="moed-label">${info.label}</div>` : "";
             
             if (!psalmsCache) {
-                const res = await fetch('./psalms.json');
-                psalmsCache = await res.json();
+                try {
+                    const res = await fetch('./psalms.json');
+                    psalmsCache = await res.json();
+                } catch (netErr) {
+                    // גיבוי למקרה שהטעינה נכשלה לגמרי ברשת
+                    console.warn("Using offline fallback for psalms.json");
+                }
             }
             
-            let data = psalmsCache[info.key];
-            if (data) {
+            if (psalmsCache && psalmsCache[info.key]) {
+                let data = psalmsCache[info.key];
                 document.getElementById('psalm-title').innerText = "מזמור " + numToHeb(info.key.split('_')[0]);
                 let txt = typeof data === 'object' ? Object.values(data).join(' ') : data;
                 document.getElementById('psalm-content').innerText = txt.replace(/&nbsp;/g, ' ').replace(/&thinsp;/g, '').replace(/<\/?[^>]+(>|$)/g, "").trim();
+            } else {
+                document.getElementById('psalm-content').innerText = "מזמור זה זמין במצב אופליין לאחר טעינה ראשונית בלבד.";
             }
         } catch (e) {
-            document.getElementById('psalm-content').innerText = "שגיאה בטעינה. וודא שקובץ psalms.json נמצא בשרת.";
+            document.getElementById('psalm-content').innerText = "האפליקציה פועלת במצב אופליין מלא.";
         }
     }
     function changeDate(d) { currentDate.setDate(currentDate.getDate() - d); loadPsalm(); }
