@@ -1,5 +1,5 @@
-// Version: v5.4 - Service Worker
-const CACHE_NAME = 'shir-shel-yom-v5.4';
+// Version: v5.6 - Service Worker
+const CACHE_NAME = 'shir-shel-yom-v5.6';
 const ASSETS = [
     './',
     './index.html',
@@ -9,7 +9,6 @@ const ASSETS = [
     'https://cdn.jsdelivr.net/npm/@hebcal/core@latest/dist/bundle.min.js'
 ];
 
-// התקנה ודילוג על המתנה לעדכון מהיר
 self.addEventListener('install', (event) => {
     self.skipWaiting();
     event.waitUntil(
@@ -17,7 +16,6 @@ self.addEventListener('install', (event) => {
     );
 });
 
-// הפעלה וניקוי מטמונים ישנים
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((cacheNames) => {
@@ -32,12 +30,10 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// אסטרטגיית שליפה: רשת תחילה עם גיבוי למטמון (Network First, falling back to Cache)
 self.addEventListener('fetch', (event) => {
     event.respondWith(
         fetch(event.request)
             .then((response) => {
-                // אם הבקשה הצליחה ברשת, נשמור עותק מעודכן במטמון ונחזיר
                 if (response && response.status === 200) {
                     let responseClone = response.clone();
                     caches.open(CACHE_NAME).then((cache) => {
@@ -47,7 +43,6 @@ self.addEventListener('fetch', (event) => {
                 return response;
             })
             .catch(() => {
-                // אם אין רשת, נשלף ישירות מהמטמון ללא שגיאות
                 return caches.match(event.request);
             })
     );
