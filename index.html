@@ -1,4 +1,4 @@
-<!-- Version: v5.6 -->
+<!-- Version: v5.8 -->
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -31,7 +31,7 @@
 </head>
 <body>
 <div id="app-root">
-    <div class="version-badge">v5.6</div>
+    <div class="version-badge">v5.8</div>
     <div class="container">
         <div class="nav-controls">
             <button onclick="changeDate(1)">→ קודם</button>
@@ -42,7 +42,6 @@
             <button onclick="changeDate(-1)">הבא ←</button>
         </div>
 
-        <!-- בורר תאריכים מתקדם -->
         <div class="date-picker-bar">
             <input type="date" id="dateSelector" onchange="onDateSelected(this.value)">
             <button class="today-btn" onclick="goToToday()">היום</button>
@@ -52,7 +51,7 @@
         <h1 id="psalm-title">מזמור...</h1>
         <div id="psalm-content">טוען מזמור...</div>
     </div>
-    <div class="footer-info">גרסה 5.6 | עבודה מלאה ללא רשת (Offline) | מנהג הגר"א</div>
+    <div class="footer-info">גרסה 5.8 | עבודה מלאה ללא רשת (Offline) | מנהג הגר"א</div>
 </div>
 <script>
     if ('serviceWorker' in navigator) {
@@ -106,7 +105,7 @@
             'Shvat': 'שבט',
             'Adar': 'אדר',
             'Adar I': 'אדר א\'',
-            'Adar II': 'אדר ב\''
+            'Adar II': 'אדר b\''
         };
         const engName = hDate.getMonthName();
         return monthsHebrew[engName] || engName;
@@ -119,7 +118,8 @@
         const dayOfWeek = date.getDay();
 
         if (dayOfWeek === 6) return { key: "92", label: "שבת קודש" };
-        if (month === 1) { // Nisan
+        
+        if (month === 1) { // Nisan (פסח)
             if (day === 15) return { key: "114", label: "יום א' דפסח" };
             if (day === 21) return { key: "18", label: "שביעי של פסח" };
             if (day > 15 && day < 21) {
@@ -131,21 +131,33 @@
                 return { key: p[count-1], label: numToHeb(count) + " דחוה\"מ" };
             }
         }
-        if (month === 7) { // Tishrei
+        
+        if (month === 7) { // Tishrei (סוכות)
             if (day === 15) return { key: "76", label: "יום א' דסוכות" };
             if (day === 22) return { key: "12", label: "שמיני עצרת" };
-            if (day > 15 && day < 22) {
+            if (day >= 16 && day <= 21) {
+                // בדיקת מיקום השבת ביחס לימי חול המועד בסוכות כדי למנוע כפילויות
                 let count = 0;
                 for (let d = 16; d <= day; d++) {
-                    if (new hebcal.HDate(d, 7, hDate.getFullYear()).greg().getDay() !== 6) count++;
+                    const tempDate = new hebcal.HDate(d, 7, hDate.getFullYear());
+                    if (tempDate.greg().getDay() !== 6) {
+                        count++;
+                    }
                 }
-                const s = ["29", "50", "94_A", "94", "81", "82"];
-                let k = s[count-1];
-                // וידוא התאמה בטוחה למפתחות הקיימים בקובץ הנתונים
-                if (k === "94" && (!psalmsCache || !psalmsCache["94"])) k = "94_A";
-                return { key: k, label: (day===21)?"הושענא רבא":numToHeb(count)+" דחוה\"מ" };
+                // מיפוי מותאם מדויק ללא חפיפה בין שלישי לרביעי
+                const s = {
+                    1: { key: "29", label: "א' דחוה\"מ" },
+                    2: { key: "50", label: "ב' דחוה\"מ" },
+                    3: { key: "94_A", label: "ג' דחוה\"מ" },
+                    4: { key: "94", label: "ד' דחוה\"מ" },
+                    5: { key: "81", label: "ה' דחוה\"מ" },
+                    6: { key: "82", label: "הושענא רבא" }
+                };
+                if (day === 21) return { key: "82", label: "הושענא רבא" };
+                return s[count] || { key: "94", label: numToHeb(count) + " דחוה\"מ" };
             }
         }
+
         if (day === 1 || day === 30) return { key: "104", label: "ראש חודש" };
         return { key: {0:'24', 1:'48', 2:'82', 3:'94_A', 4:'81', 5:'93'}[dayOfWeek], label: "" };
     }
@@ -161,7 +173,6 @@
             const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
             document.getElementById('gregorian-date').innerHTML = currentDate.toLocaleDateString('he-IL', options);
 
-            // עדכון ערך שדה בחירת התאריך
             const yearStr = currentDate.getFullYear();
             const monthStr = String(currentDate.getMonth() + 1).padStart(2, '0');
             const dayStr = String(currentDate.getDate()).padStart(2, '0');
