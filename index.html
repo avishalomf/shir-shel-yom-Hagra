@@ -1,4 +1,4 @@
-<!-- Version: v5.8 -->
+<!-- Version: v5.10 -->
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -31,7 +31,7 @@
 </head>
 <body>
 <div id="app-root">
-    <div class="version-badge">v5.8</div>
+    <div class="version-badge">v5.10</div>
     <div class="container">
         <div class="nav-controls">
             <button onclick="changeDate(1)">→ קודם</button>
@@ -51,7 +51,7 @@
         <h1 id="psalm-title">מזמור...</h1>
         <div id="psalm-content">טוען מזמור...</div>
     </div>
-    <div class="footer-info">גרסה 5.8 | עבודה מלאה ללא רשת (Offline) | מנהג הגר"א</div>
+    <div class="footer-info">גרסה 5.10 | עבודה מלאה ללא רשת (Offline) | מנהג הגר"א</div>
 </div>
 <script>
     if ('serviceWorker' in navigator) {
@@ -65,6 +65,7 @@
 
     function numToHeb(n) {
         if (n === "94_A") return 'צ"ד (א)';
+        if (n === "94_B") return 'צ"ד (ב)';
         let num = parseInt(n);
         if (isNaN(num)) return n;
         if (num === 15) return 'טו'; if (num === 16) return 'טז';
@@ -105,7 +106,7 @@
             'Shvat': 'שבט',
             'Adar': 'אדר',
             'Adar I': 'אדר א\'',
-            'Adar II': 'אדר b\''
+            'Adar II': 'אדר ב\''
         };
         const engName = hDate.getMonthName();
         return monthsHebrew[engName] || engName;
@@ -136,7 +137,6 @@
             if (day === 15) return { key: "76", label: "יום א' דסוכות" };
             if (day === 22) return { key: "12", label: "שמיני עצרת" };
             if (day >= 16 && day <= 21) {
-                // בדיקת מיקום השבת ביחס לימי חול המועד בסוכות כדי למנוע כפילויות
                 let count = 0;
                 for (let d = 16; d <= day; d++) {
                     const tempDate = new hebcal.HDate(d, 7, hDate.getFullYear());
@@ -144,17 +144,17 @@
                         count++;
                     }
                 }
-                // מיפוי מותאם מדויק ללא חפיפה בין שלישי לרביעי
+                // הפרדה מדויקת בין 94_A (ג' דחוה"מ) לבין 94_B (ד' דחוה"מ) בהתאם לנתונים בקובץ
                 const s = {
                     1: { key: "29", label: "א' דחוה\"מ" },
                     2: { key: "50", label: "ב' דחוה\"מ" },
                     3: { key: "94_A", label: "ג' דחוה\"מ" },
-                    4: { key: "94", label: "ד' דחוה\"מ" },
+                    4: { key: "94_B", label: "ד' דחוה\"מ" },
                     5: { key: "81", label: "ה' דחוה\"מ" },
                     6: { key: "82", label: "הושענא רבא" }
                 };
                 if (day === 21) return { key: "82", label: "הושענא רבא" };
-                return s[count] || { key: "94", label: numToHeb(count) + " דחוה\"מ" };
+                return s[count] || { key: "94_B", label: numToHeb(count) + " דחוה\"מ" };
             }
         }
 
@@ -191,15 +191,11 @@
             document.getElementById('moed-container').innerHTML = info.label ? `<div class="moed-label">${info.label}</div>` : "";
             
             let targetKey = info.key;
-            if (psalmsCache) {
-                if (!psalmsCache[targetKey] && targetKey === "94" && psalmsCache["94_A"]) {
-                    targetKey = "94_A";
-                }
-            }
 
             if (psalmsCache && psalmsCache[targetKey]) {
                 let data = psalmsCache[targetKey];
-                document.getElementById('psalm-title').innerText = "מזמור " + numToHeb(targetKey.split('_')[0]);
+                let displayKey = targetKey.includes('_') ? targetKey.split('_')[0] : targetKey;
+                document.getElementById('psalm-title').innerText = "מזמור " + numToHeb(displayKey);
                 let txt = typeof data === 'object' ? Object.values(data).join(' ') : data;
                 document.getElementById('psalm-content').innerText = txt.replace(/&nbsp;/g, ' ').replace(/&thinsp;/g, '').replace(/<\/?[^>]+(>|$)/g, "").trim();
             } else {
