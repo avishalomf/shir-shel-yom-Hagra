@@ -1,5 +1,5 @@
-// Version: v5.6 - Service Worker
-const CACHE_NAME = 'shir-shel-yom-v5.6';
+// Version: v5.8 - Service Worker
+const CACHE_NAME = 'shir-shel-yom-v5.8';
 const ASSETS = [
     './',
     './index.html',
